@@ -21,10 +21,11 @@ Bounds have to be set for the optimizer: the steering angle is bounded between -
 The main.cpp uses the solve method of the MPC class using the state and waypoints provided by the simulator as input. The waypoints needs to be transformed into vehicle coordinates. The solver returns actuator inputs and predicted points that are sent back to the simulator.
 
 ## Dealing with latency
-By using the actuation of t-2 for the prediction step the latency effect could be compensated.
+Latency was finally compensated by predicting the state after latency in the main.cpp and passing the predicted state to the solver, which then finds actuations to optimize correct state.
 
 # Tuning
 The weights for the cost functions and the values for N and dt were tuned to keep the vehicle on the road and reduce oscillations. Initially the cost weights were kept at 1 and values for N and dt taken from class (10, 0.5). This did not work, so delta t was decreased. While the car stayed mostly on the road, small values of dt also led to strong oscillations. 
 After some tweaking of the weights for cross-track, orentation and actuator input the car stayed on the road without oscillations. To increase reference speed (initially at 60) the time horizon was increased slightly while also increasing the weighting for the acutation-related cost components, which enabled the car to anticipate curves better, at the cost of larger error close to the car. The final reference speed (100) with a slightly increased velocity weight factor is a good trade-off between high speed on relatively straight patches and safety on the rest of the track.
+After some feedback from reviewers and changes to the latency compensation the tuning had to be repeated. A lower timestep combined with differently scaled cost weights produced much better results.
 
 
