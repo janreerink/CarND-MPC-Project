@@ -29,5 +29,4 @@ After some tweaking of the weights for cross-track, orentation and actuator inpu
 After some feedback from reviewers and changes to the latency compensation the tuning had to be repeated. A lower timestep combined with differently scaled cost weights produced much better results.
 
 
-[Example video](self_driving_car_nanodegree_program 1_28_2018 2_13_39 PM.mp4
-)
+[Example video](mpc.mp4)
