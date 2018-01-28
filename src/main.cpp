@@ -8,10 +8,11 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
+#include <cppad/cppad.hpp>
 
 // for convenience
 using json = nlohmann::json;
-
+using CppAD::AD;
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
@@ -90,9 +91,10 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
-          double v1 = j[1]["speed"];
+          double v = j[1]["speed"];
+          //double v1 = j[1]["speed"];
           //convert mph to m/s
-          double v = 1609.34 * v1 / 3600;
+          //double v = 1609.34 * v1 / 3600;
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -123,27 +125,43 @@ int main() {
           }
 
           // fit third degree polynomial and get errors
+          //auto coeffs = polyfit(ptsx_veh, ptsy_veh, 3);
           auto coeffs = polyfit(wpx_car, wpy_car, 3);
           double cte = polyeval(coeffs, 0);
           double epsi = -atan(coeffs[1]);
 
 
 
+          // predict state after application of latency and use this modified state as input to mpc
+          double latency = 0.1;
+          const double Lf = 2.67;
+    	  px =  0 + v * latency;
+    	  py = 0;
+    	  psi = 0 + v * -steer_value / Lf * latency;
+    	  v = v + throttle_value * latency;
+    	  cte = cte + v * sin(epsi) * latency;
+    	  epsi = epsi + v * -steer_value / Lf * latency;
 
-          Eigen::VectorXd curren_state(6);
-          curren_state << 0, 0, 0, v, cte, epsi;
-          auto current_vars = mpc.Solve(curren_state, coeffs);
-          steer_value = current_vars[0];
+
+
+          Eigen::VectorXd current_state(6);
+    	  current_state << px, py, psi, v,cte, epsi;
+          auto current_vars = mpc.Solve(current_state, coeffs);
+
+
+          //steer_value = current_vars[0];
+          steer_value = -current_vars[0] / (deg2rad(25) * Lf);
           throttle_value = current_vars[1];
 
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = -steer_value/(deg2rad(25));
+          //msgJson["steering_angle"] = -steer_value/(deg2rad(25));
+          msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
-          //Display the MPC predicted trajectory 
+          //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
