@@ -7,11 +7,11 @@ using CppAD::AD;
 
 // TODO: Set the timestep length and duration
 // T should be about 10 seconds according to class; dt set to 0.1 to correspond to latency
-size_t N = 25;
-double dt = 0.05; //0.15
+size_t N = 10;
+double dt = 0.1;
 //set refernce speed
-//double ref_v = 60;
-double ref_v = 60 * 0.44; //converted to m/s
+double ref_v = 100;
+//double ref_v = 60 * 0.44; //converted to m/s
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -60,13 +60,13 @@ class FG_eval {
 	fg[1 + cte_start] = vars[cte_start];
 	fg[1 + epsi_start] = vars[epsi_start];
 
-	double cte_weight = 0.7;
-	double epsi_weight = 1.5;
-	double vel_weight = 0.5;
-	double actuator_weight1a = 5000; //10000
-	double actuator_weight1b = 5; //1
-	double actuator_weight2a = 4000;
-	double actuator_weight2b = 1;
+	double cte_weight = 3000;
+	double epsi_weight = 4000;
+	double vel_weight = 1;
+	double actuator_weight1a = 100;
+	double actuator_weight1b = 10; //1
+	double actuator_weight2a = 100;
+	double actuator_weight2b = 10;
 	//cost components as shown in class:
 	//cross-track, angle and velocity error
 	for (int t = 0; t < N; t++) {
@@ -110,10 +110,12 @@ class FG_eval {
 	  AD<double> delta0 = vars[delta_start + t - 1];
 	  AD<double> a0 = vars[a_start + t - 1];
 
+	  /*
 	  if (t > 1) {   // actuations lag one timestamp due to latency
     	  delta0 = vars[delta_start + t - 2];
     	  a0 = vars[a_start + t - 2];
       }
+      */
 
 	  // replace with third order poly
 	  //AD<double> f0 = coeffs[0] + coeffs[1] * x0;
@@ -277,3 +279,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   return res;
 }
+
+
